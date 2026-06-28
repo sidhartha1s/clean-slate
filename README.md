@@ -1,7 +1,8 @@
 # clean-slate
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that turns **"looks done"** into
-**"is actually done"** before you close a coding session.
+A coding-agent skill that turns **"looks done"** into **"is actually done"** before you close a
+session. Works with **Claude Code**, **Codex**, **OpenClaw**, and **Hermes** — the skill is one
+harness-agnostic `SKILL.md`.
 
 ## The problem it solves
 
@@ -25,16 +26,52 @@ It also catches the subtle traps: an **auto-commit hook** that makes a dirty tre
 pushed-but-never-PR'd, non-git contexts (notes/config dirs), secrets in the commit range, and a "fix" that's
 really a workaround.
 
+## Compatibility
+
+The skill is a single `SKILL.md`. Drop it in your harness's skills directory:
+
+| Harness | Global skills dir | Project (repo-local) skills dir |
+|---|---|---|
+| **Claude Code** | `~/.claude/skills/clean-slate/` | `.claude/skills/clean-slate/` |
+| **Codex** (OpenAI) | `~/.codex/skills/clean-slate/` | `.agents/skills/clean-slate/` |
+| **OpenClaw** | `~/.openclaw/skills/clean-slate/` | `.openclaw/skills/clean-slate/` |
+| **Hermes** (Nous Research) | `~/.hermes/skills/clean-slate/` | `skills/clean-slate/` |
+
+Each harness auto-discovers a skill from its `SKILL.md` and activates it on the `description` frontmatter.
+(Codex and Hermes also read `~/.agents/skills/` — a shared cross-agent location, if you prefer one dir for
+every tool.)
+
 ## Install
 
-Drop the skill into your Claude Code skills directory:
+Replace `claude-code` with `codex`, `openclaw`, or `hermes` as needed. Add `--project` (or `-Project` on
+Windows) to install into the current repo instead of your home directory.
+
+**Linux / macOS:**
 
 ```bash
-mkdir -p ~/.claude/skills/clean-slate
-cp SKILL.md ~/.claude/skills/clean-slate/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/sidhartha1s/clean-slate/main/install.sh | sh -s -- claude-code
 ```
 
-(Or your project-local `.claude/skills/` if you want it per-repo.)
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/sidhartha1s/clean-slate/main/install.ps1 -OutFile install.ps1; ./install.ps1 claude-code
+```
+
+**From a clone** (inspect first, then install — same script):
+
+```bash
+git clone https://github.com/sidhartha1s/clean-slate.git && cd clean-slate
+./install.sh codex            # or: pwsh ./install.ps1 codex
+```
+
+**Manual** (no script): copy `SKILL.md` into the matching directory from the table above, e.g.
+
+```bash
+mkdir -p ~/.codex/skills/clean-slate
+curl -fsSL https://raw.githubusercontent.com/sidhartha1s/clean-slate/main/SKILL.md \
+  -o ~/.codex/skills/clean-slate/SKILL.md
+```
 
 ## Use
 
@@ -47,15 +84,17 @@ It triggers proactively on session-end signals — "let's close this", "wrap up"
 
 It will not fire on a mid-task "are we good?" check-in with no work in flight — that's not session end.
 
-## Customize
+## How it adapts to your harness
 
-The skill is written to be harness-agnostic, but a few things are worth tuning to your setup:
+The skill is written in actions, not tool names, so it runs anywhere — but a few things map to your setup:
 
+- **Instructions file** (Steps 5 & 7) — it writes durable rules to your agent-instructions file. That's
+  `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex / OpenClaw / Hermes. Point it at whichever you use.
+- **Auto-commit hooks** (Step 2) — if your environment commits/pushes edits automatically, the skill already
+  treats "clean tree ≠ safe" and checks for a PR instead. Adjust the specifics if your hook differs.
 - **Merge protocol** (Step 4) — set it to your repo's convention (rebase vs squash, required reviewers, CI).
-- **Where learnings go** (Step 5) — point it at your `LEARNINGS.md`, notes store, and instructions file
-  (`CLAUDE.md` / `AGENTS.md`).
-- **Auto-commit behavior** (Step 2) — if your environment commits/pushes edits automatically, the "clean
-  tree ≠ safe" note already covers it; adjust the specifics if your hook differs.
+- **Where learnings go** (Step 5) — point it at your `LEARNINGS.md`, memory/notes store, and instructions
+  file.
 
 ## License
 
