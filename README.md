@@ -62,7 +62,8 @@ irm https://raw.githubusercontent.com/sidhartha1s/clean-slate/main/install.ps1 -
 
 ```bash
 git clone https://github.com/sidhartha1s/clean-slate.git && cd clean-slate
-./install.sh codex            # or: pwsh ./install.ps1 codex
+./install.sh codex            # Linux / macOS
+./install.ps1 codex           # Windows (or any box with PowerShell Core)
 ```
 
 **Manual** (no script): copy `SKILL.md` into the matching directory from the table above, e.g.
