@@ -11,6 +11,11 @@ All notable changes to clean-slate are documented here.
   right skills directory for the chosen harness, global or `--project` scope. Run from a clone
   or pipe straight from `curl`/`irm`.
 - Harness compatibility matrix and per-OS install instructions in the README.
+- **`CONTRIBUTING.md`** — how to add a new harness (the three in-sync touch-points across
+  `install.sh`, `install.ps1`, and the README matrix) and how to test the installer against a
+  throwaway `HOME`.
+- **Example output** section in the README — a sample clean-slate report so readers see the
+  output shape before installing.
 
 ### Notes
 - The skill body was already harness-agnostic (it speaks in actions and names your
