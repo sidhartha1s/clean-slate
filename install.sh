@@ -30,7 +30,9 @@ esac
 if [ "$SCOPE" = "--project" ]; then DEST="$PROJECT_DIR"; else DEST="$GLOBAL_DIR"; fi
 
 mkdir -p "$DEST"
-if [ -f "./SKILL.md" ]; then
+# Prefer a local SKILL.md only when it's verifiably THIS skill — a bare "./SKILL.md exists" check
+# would copy an unrelated skill if the script is piped (curl | sh) from inside some other skill's dir.
+if [ -f "./SKILL.md" ] && grep -q '^name: clean-slate' "./SKILL.md" 2>/dev/null; then
   cp "./SKILL.md" "$DEST/SKILL.md"
 elif command -v curl >/dev/null 2>&1; then
   curl -fsSL "$RAW_SKILL" -o "$DEST/SKILL.md"
