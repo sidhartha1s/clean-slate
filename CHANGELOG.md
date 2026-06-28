@@ -21,7 +21,7 @@ All notable changes to clean-slate are documented here.
 - The skill body was already harness-agnostic (it speaks in actions and names your
   instructions file as `CLAUDE.md` / `AGENTS.md`), so no behavioral changes were needed.
 
-## [0.1.0]
+## [0.1.0] — 2026-06-29
 
 ### Added
 - Initial public release: the `clean-slate` session-end verification skill for Claude Code.
