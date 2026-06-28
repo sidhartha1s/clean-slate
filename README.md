@@ -85,6 +85,57 @@ It triggers proactively on session-end signals — "let's close this", "wrap up"
 
 It will not fire on a mid-task "are we good?" check-in with no work in flight — that's not session end.
 
+## Example output
+
+Here is a sample report from a session that had one gap merged via a PR and one item held for the owner, so you can see the output shape before installing.
+
+<details>
+<summary>Sample clean-slate report</summary>
+
+```
+# Clean-Slate Report — auth-rate-limit session / 2026-06-29
+
+## ⚠️ Looks done but ISN'T
+- "Rate-limit fix is merged" — it was NOT. PR #482 was still OPEN at wind-down;
+  the branch `fix/login-rate-limit` was pushed but never landed. Closing here
+  would have left main without the fix. Now merged (see below).
+
+## Blocked on owner
+- PR #485 (`migrate-sessions-to-redis`) — staged, reviewed, CI green, but it runs
+  a destructive table migration with broad blast radius. HELD, not merged: a
+  migration at wind-down needs your go-ahead and a rollback window, not an
+  autonomous merge.
+
+## Claims verified
+- "Rate-limit fix committed and pushed" — VERIFIED (evidence: `git log @{u}..` empty,
+  branch `fix/login-rate-limit` ahead 0 of origin)
+- "Rate-limit fix merged to main" — GAP (said merged; `gh pr view 482` →
+  "state":"OPEN","mergedAt":null) → reconciled: merged in PR #482, now
+  "state":"MERGED","mergedAt":"2026-06-29T03:11:42Z"
+- "Unit + integration tests pass" — VERIFIED (re-ran this session: `pytest -q` →
+  214 passed, 0 failed; CI on main `gh run list --branch main --limit 1` →
+  "conclusion":"success")
+- "Redis session migration ready" — GAP (claimed done; PR #485 →
+  "state":"OPEN") → HELD as BLOCKED-ON-OWNER, see above
+
+## Reconciled this session
+- Merged: PR #482 (login rate-limit) — low-risk, fully verified, tests green,
+  review clean. Held: PR #485 (redis session migration) — destructive migration,
+  needs owner sign-off + rollback window.
+- Learnings: added to `LEARNINGS.md` — "express-rate-limit needs `trust proxy`
+  set or all clients share one bucket behind the load balancer" (new gotcha, not
+  previously documented; grep of LEARNINGS.md + CLAUDE.md found no existing rule).
+- Code: root-cause fix in PR #482 — `trust proxy` enabled in `src/app.ts` and
+  keyGenerator switched to `req.ip`; the earlier hardcoded `100` constant was
+  moved to `config/rateLimit.ts`.
+- Docs: `README.md` deploy section updated to note the `TRUST_PROXY=1` env var;
+  `docs/auth.md` rate-limit table corrected (was 60/min, code is 100/min).
+
+## Clean to close?  BLOCKED-ON-OWNER — PR #482 landed and verified; redis session migration (PR #485) held pending your go-ahead on the destructive step.
+```
+
+</details>
+
 ## How it adapts to your harness
 
 The skill is written in actions, not tool names, so it runs anywhere — but a few things map to your setup:
