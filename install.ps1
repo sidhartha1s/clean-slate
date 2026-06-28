@@ -28,10 +28,16 @@ $paths = @{
 $dest = if ($Project) { $paths[$Harness].Project } else { $paths[$Harness].Global }
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
-if (Test-Path "./SKILL.md") {
+# Prefer a local SKILL.md only when it's verifiably THIS skill — a bare existence check would copy an
+# unrelated skill if run from inside some other skill's directory.
+if ((Test-Path "./SKILL.md") -and (Select-String -Path "./SKILL.md" -Pattern '^name: clean-slate' -Quiet)) {
   Copy-Item "./SKILL.md" "$dest\SKILL.md" -Force
 } else {
-  Invoke-WebRequest -Uri $rawSkill -OutFile "$dest\SKILL.md"
+  try {
+    Invoke-WebRequest -Uri $rawSkill -OutFile "$dest\SKILL.md"
+  } catch {
+    Write-Error "clean-slate: could not download SKILL.md — $_"; exit 1
+  }
 }
 
 Write-Host "clean-slate installed for $Harness -> $dest\SKILL.md"
